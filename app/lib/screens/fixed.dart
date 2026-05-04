@@ -146,7 +146,7 @@ class FixedScreen extends StatelessWidget {
 
           // 리스트
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 130),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               AppCard(
                 padding: EdgeInsets.zero,

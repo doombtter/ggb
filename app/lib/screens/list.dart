@@ -96,7 +96,7 @@ class TxListScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 130),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: dates.map((d) {

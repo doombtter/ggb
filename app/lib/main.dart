@@ -85,9 +85,15 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      widget.dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-    );
+    final t = AppTheme.of(context);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: widget.dark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: widget.dark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: t.bg,
+      systemNavigationBarIconBrightness: widget.dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ));
 
     final body = switch (_route) {
       AppRoute.onboarding => OnboardingScreen(onStart: () => _go(AppRoute.home)),

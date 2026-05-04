@@ -73,7 +73,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ]),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 130),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             // 총액 카드 (그라디언트)
             AppCard(

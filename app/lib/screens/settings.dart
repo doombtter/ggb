@@ -56,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
           ),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 130),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               // 프로필
               AppCard(

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import '../theme/tokens.dart';
 import '../models/models.dart';
@@ -100,9 +101,10 @@ class FabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppTheme.of(context);
+    final inset = MediaQuery.of(context).padding.bottom;
     return Positioned(
       right: 20,
-      bottom: 100,
+      bottom: inset + 90, // 플로팅 탭바(64+14) 위에 살짝 띄움
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -275,87 +277,7 @@ class HBars extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────
-// 상단 상태바 / 홈 인디케이터
-// ─────────────────────────────────────────
-class StatusBar extends StatelessWidget {
-  const StatusBar({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTheme.of(context);
-    final c = t.text;
-    return Container(
-      height: 47,
-      padding: const EdgeInsets.fromLTRB(28, 14, 28, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text('9:41', style: ts(17, w: FontWeight.w600, c: c)),
-          Row(children: [
-            CustomPaint(size: const Size(17, 11), painter: _SignalPainter(c)),
-            const SizedBox(width: 5),
-            CustomPaint(size: const Size(24, 11), painter: _BatteryPainter(c)),
-          ]),
-        ],
-      ),
-    );
-  }
-}
-
-class _SignalPainter extends CustomPainter {
-  final Color color;
-  _SignalPainter(this.color);
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = color;
-    final bars = [const Rect.fromLTWH(0, 7, 3, 4), const Rect.fromLTWH(4.5, 5, 3, 6), const Rect.fromLTWH(9, 2.5, 3, 8.5), const Rect.fromLTWH(13.5, 0, 3, 11)];
-    for (final r in bars) {
-      canvas.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(0.5)), p);
-    }
-  }
-  @override
-  bool shouldRepaint(_) => false;
-}
-
-class _BatteryPainter extends CustomPainter {
-  final Color color;
-  _BatteryPainter(this.color);
-  @override
-  void paint(Canvas canvas, Size size) {
-    final stroke = Paint()..style = PaintingStyle.stroke..strokeWidth = 1..color = color;
-    final fill = Paint()..color = color;
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(0.5, 0.5, 20, 10), const Radius.circular(2.5)), stroke);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(2, 2, 17, 7), const Radius.circular(1.5)), fill);
-    final tip = Path()..moveTo(22, 4)..lineTo(22, 7)..cubicTo(22.7, 6.7, 23, 6.1, 23, 5.5)..cubicTo(23, 4.9, 22.7, 4.3, 22, 4)..close();
-    canvas.drawPath(tip, fill);
-  }
-  @override
-  bool shouldRepaint(_) => false;
-}
-
-class HomeIndicator extends StatelessWidget {
-  const HomeIndicator({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final t = AppTheme.of(context);
-    return Positioned(
-      bottom: 8,
-      left: 0, right: 0,
-      child: Center(
-        child: Container(
-          width: 134, height: 5,
-          decoration: BoxDecoration(
-            color: t.dark ? Colors.white.withOpacity(0.55) : Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// 하단 탭바
+// 플로팅 알약 탭바 (반투명 + 블러)
 // ─────────────────────────────────────────
 class AppTabBar extends StatelessWidget {
   final String active;
@@ -379,38 +301,66 @@ class AppTabBar extends StatelessWidget {
     return Icons.circle;
   }
 
+  /// 탭바가 차지하는 총 높이 (콘텐츠 padding bottom 계산용)
+  static double totalHeight(BuildContext context) {
+    final inset = MediaQuery.of(context).padding.bottom;
+    return 64 /* 바 높이 */ + 14 /* 화면 하단 마진 */ + inset;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppTheme.of(context);
+    final inset = MediaQuery.of(context).padding.bottom;
+    final fillColor = (t.dark ? const Color(0xFF252019) : Colors.white).withOpacity(0.78);
+
     return Positioned(
-      left: 0, right: 0, bottom: 0,
-      child: Container(
-        padding: const EdgeInsets.only(top: 8, bottom: 24),
-        decoration: BoxDecoration(
-          color: t.surface,
-          border: Border(top: BorderSide(color: t.line, width: 0.5)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: _tabs.map((tab) {
-            final on = tab['id'] == active;
-            final c = on ? t.primary : t.textTer;
-            return GestureDetector(
-              onTap: () => onTap?.call(tab['id']!),
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(_iconFor(tab['id']!), size: 24, color: c),
-                    const SizedBox(height: 3),
-                    Text(tab['label']!, style: ts(10.5, w: on ? FontWeight.w700 : FontWeight.w500, c: c)),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+      left: 18, right: 18, bottom: inset + 14,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: t.dark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(t.dark ? 0.4 : 0.10), blurRadius: 24, offset: const Offset(0, 8)),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: _tabs.map((tab) {
+                final on = tab['id'] == active;
+                final c = on ? t.primary : t.textTer;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => onTap?.call(tab['id']!),
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: on ? t.primarySoft : Colors.transparent,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_iconFor(tab['id']!), size: 22, color: c),
+                          const SizedBox(height: 2),
+                          Text(tab['label']!, style: ts(10, w: on ? FontWeight.w700 : FontWeight.w500, c: c)),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ),
       ),
     );
@@ -418,27 +368,23 @@ class AppTabBar extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────
-// 화면 셸
+// 화면 셸 — 시스템 status bar/네비 inset 자동 처리
 // ─────────────────────────────────────────
 class AppScreen extends StatelessWidget {
   final Widget child;
   final bool scrollable;
-  final double padTop;
-  const AppScreen({super.key, required this.child, this.scrollable = true, this.padTop = 47});
+  const AppScreen({super.key, required this.child, this.scrollable = true});
   @override
   Widget build(BuildContext context) {
     final t = AppTheme.of(context);
+    final topInset = MediaQuery.of(context).padding.top;
     final body = scrollable ? SingleChildScrollView(child: child) : child;
     return Container(
       color: t.bg,
-      child: Stack(children: [
-        Positioned.fill(
-          top: padTop,
-          child: ClipRect(child: body),
-        ),
-        const Positioned(top: 0, left: 0, right: 0, child: StatusBar()),
-        const HomeIndicator(),
-      ]),
+      child: Padding(
+        padding: EdgeInsets.only(top: topInset),
+        child: body,
+      ),
     );
   }
 }
