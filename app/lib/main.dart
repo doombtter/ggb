@@ -5,6 +5,7 @@ import 'theme/tokens.dart';
 import 'models/models.dart';
 import 'data/sample.dart';
 import 'screens/onboarding.dart';
+import 'screens/login.dart';
 import 'screens/home.dart';
 import 'screens/list.dart';
 import 'screens/detail.dart';
@@ -57,7 +58,7 @@ class _GgbAppState extends State<GgbApp> {
   }
 }
 
-enum AppRoute { onboarding, home, list, fixed, settings, addEntry, ocr, manual, fixedAdd, variableDialog, report, group, detail }
+enum AppRoute { onboarding, login, home, list, fixed, settings, addEntry, ocr, manual, fixedAdd, variableDialog, report, group, detail }
 
 class AppShell extends StatefulWidget {
   final bool dark;
@@ -96,7 +97,8 @@ class _AppShellState extends State<AppShell> {
     ));
 
     final body = switch (_route) {
-      AppRoute.onboarding => OnboardingScreen(onStart: () => _go(AppRoute.home)),
+      AppRoute.onboarding => OnboardingScreen(onStart: () => _go(AppRoute.login)),
+      AppRoute.login => LoginScreen(onLogin: (_) => _go(AppRoute.home)),
       AppRoute.home => HomeScaffold(onTab: _onTab, onFab: () => _go(AppRoute.addEntry)),
       AppRoute.list => TxListScreen(
         onTab: _onTab,

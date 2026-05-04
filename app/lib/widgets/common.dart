@@ -304,57 +304,78 @@ class AppTabBar extends StatelessWidget {
   /// 탭바가 차지하는 총 높이 (콘텐츠 padding bottom 계산용)
   static double totalHeight(BuildContext context) {
     final inset = MediaQuery.of(context).padding.bottom;
-    return 64 /* 바 높이 */ + 14 /* 화면 하단 마진 */ + inset;
+    return 60 + 16 + inset;
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppTheme.of(context);
     final inset = MediaQuery.of(context).padding.bottom;
-    final fillColor = (t.dark ? const Color(0xFF252019) : Colors.white).withOpacity(0.78);
+
+    // 라이트: 흰색 거의 불투명 (블러 위에서 자연스러운 유리감)
+    // 다크: 표면 컬러 70% — 너무 검지 않게
+    final fillColor = (t.dark ? const Color(0xFF2D271F) : Colors.white).withOpacity(t.dark ? 0.72 : 0.86);
+    final borderColor = t.dark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03);
 
     return Positioned(
-      left: 18, right: 18, bottom: inset + 14,
+      left: 24, right: 24, bottom: inset + 16,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Container(
-            height: 64,
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            height: 60,
             decoration: BoxDecoration(
               color: fillColor,
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: t.dark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04)),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: borderColor),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(t.dark ? 0.4 : 0.10), blurRadius: 24, offset: const Offset(0, 8)),
+                BoxShadow(color: Colors.black.withOpacity(t.dark ? 0.32 : 0.06), blurRadius: 24, offset: const Offset(0, 6), spreadRadius: -4),
+                BoxShadow(color: Colors.black.withOpacity(t.dark ? 0.20 : 0.04), blurRadius: 8,  offset: const Offset(0, 2)),
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: _tabs.map((tab) {
                 final on = tab['id'] == active;
-                final c = on ? t.primary : t.textTer;
+                final color = on ? t.primary : t.textTer;
                 return Expanded(
                   child: GestureDetector(
                     onTap: () => onTap?.call(tab['id']!),
                     behavior: HitTestBehavior.opaque,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: on ? t.primarySoft : Colors.transparent,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_iconFor(tab['id']!), size: 22, color: c),
-                          const SizedBox(height: 2),
-                          Text(tab['label']!, style: ts(10, w: on ? FontWeight.w700 : FontWeight.w500, c: c)),
-                        ],
-                      ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedScale(
+                              scale: on ? 1.0 : 0.94,
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              child: Icon(_iconFor(tab['id']!), size: 22, color: color),
+                            ),
+                            const SizedBox(height: 3),
+                            AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 150),
+                              style: ts(10.5, w: on ? FontWeight.w700 : FontWeight.w500, c: color),
+                              child: Text(tab['label']!),
+                            ),
+                          ],
+                        ),
+                        // 활성 탭 하단 도트
+                        Positioned(
+                          bottom: 6,
+                          child: AnimatedOpacity(
+                            opacity: on ? 1 : 0,
+                            duration: const Duration(milliseconds: 180),
+                            child: Container(
+                              width: 4, height: 4,
+                              decoration: BoxDecoration(color: t.primary, shape: BoxShape.circle),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
