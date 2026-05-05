@@ -1,12 +1,41 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/common.dart';
 
 enum LoginProvider { kakao, apple, google }
 
-class LoginScreen extends StatelessWidget {
-  final void Function(LoginProvider provider)? onLogin;
-  const LoginScreen({super.key, this.onLogin});
+class LoginScreen extends StatefulWidget {
+  final VoidCallback? onSuccess;
+  const LoginScreen({super.key, this.onSuccess});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  LoginProvider? _busy;
+
+  Future<void> _signIn(LoginProvider p) async {
+    if (_busy != null) return;
+    setState(() => _busy = p);
+    try {
+      switch (p) {
+        case LoginProvider.kakao:  await AuthService.signInWithKakao(); break;
+        case LoginProvider.apple:  await AuthService.signInWithApple(); break;
+        case LoginProvider.google: await AuthService.signInWithGoogle(); break;
+      }
+      if (mounted) widget.onSuccess?.call();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('로그인 실패: $e'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,26 +67,32 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              Center(child: Text('우리집 가계부',
+              Center(child: Text('티끌가계부',
                 style: ts(28, w: FontWeight.w800, c: t.text, letterSpacing: -0.5))),
               const SizedBox(height: 8),
-              Center(child: Text('가족이 함께 쓰는 영수증 가계부',
+              Center(child: Text('티끌 모아 가족 가계부',
                 style: ts(14, w: FontWeight.w500, c: t.textSec))),
               const Spacer(),
 
               _LoginButton(
                 provider: LoginProvider.kakao,
-                onTap: () => onLogin?.call(LoginProvider.kakao),
+                busy: _busy == LoginProvider.kakao,
+                disabled: _busy != null && _busy != LoginProvider.kakao,
+                onTap: () => _signIn(LoginProvider.kakao),
               ),
               const SizedBox(height: 10),
               _LoginButton(
                 provider: LoginProvider.apple,
-                onTap: () => onLogin?.call(LoginProvider.apple),
+                busy: _busy == LoginProvider.apple,
+                disabled: _busy != null && _busy != LoginProvider.apple,
+                onTap: () => _signIn(LoginProvider.apple),
               ),
               const SizedBox(height: 10),
               _LoginButton(
                 provider: LoginProvider.google,
-                onTap: () => onLogin?.call(LoginProvider.google),
+                busy: _busy == LoginProvider.google,
+                disabled: _busy != null && _busy != LoginProvider.google,
+                onTap: () => _signIn(LoginProvider.google),
               ),
               const SizedBox(height: 24),
 
@@ -85,7 +120,9 @@ class LoginScreen extends StatelessWidget {
 class _LoginButton extends StatelessWidget {
   final LoginProvider provider;
   final VoidCallback? onTap;
-  const _LoginButton({required this.provider, this.onTap});
+  final bool busy;
+  final bool disabled;
+  const _LoginButton({required this.provider, this.onTap, this.busy = false, this.disabled = false});
 
   @override
   Widget build(BuildContext context) {
@@ -112,22 +149,30 @@ class _LoginButton extends StatelessWidget {
       ),
     };
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 54,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: spec.bg,
-          borderRadius: BorderRadius.circular(14),
-          border: spec.border != null ? Border.all(color: spec.border!) : null,
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Align(alignment: Alignment.centerLeft, child: SizedBox(width: 22, height: 22, child: spec.icon)),
-            Text(spec.label, style: ts(15, w: FontWeight.w700, c: spec.fg)),
-          ],
+    return Opacity(
+      opacity: disabled ? 0.4 : 1,
+      child: GestureDetector(
+        onTap: disabled || busy ? null : onTap,
+        child: Container(
+          height: 54,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: spec.bg,
+            borderRadius: BorderRadius.circular(14),
+            border: spec.border != null ? Border.all(color: spec.border!) : null,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Align(alignment: Alignment.centerLeft, child: SizedBox(width: 22, height: 22, child: spec.icon)),
+              busy
+                ? SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: spec.fg),
+                  )
+                : Text(spec.label, style: ts(15, w: FontWeight.w700, c: spec.fg)),
+            ],
+          ),
         ),
       ),
     );

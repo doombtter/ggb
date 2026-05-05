@@ -1,11 +1,11 @@
-name: ggb
-description: 우리집 가계부 — 가족용 영수증 가계부 (MVP)
+name: tikkle
+description: 티끌가계부 — 가족이 함께 쓰는 영수증 가계부
 publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
-  flutter: ">=3.24.0"
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
@@ -18,6 +18,7 @@ dependencies:
   sign_in_with_apple: ^8.0.0
   google_sign_in: ^7.2.0
   kakao_flutter_sdk_user: ^2.0.0+1
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_lints: ^6.0.0

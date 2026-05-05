@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'firebase_options.dart';
+import 'services/auth_service.dart';
 import 'theme/tokens.dart';
 import 'models/models.dart';
 import 'data/sample.dart';
@@ -19,7 +23,10 @@ import 'screens/report.dart';
 import 'screens/group.dart';
 import 'screens/settings.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AuthService.init();
   runApp(const GgbApp());
 }
 
@@ -36,7 +43,7 @@ class _GgbAppState extends State<GgbApp> {
   Widget build(BuildContext context) {
     final tokens = _dark ? AppTokens.dark_ : AppTokens.light;
     return MaterialApp(
-      title: '우리집 가계부',
+      title: '티끌가계부',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -70,7 +77,9 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  AppRoute _route = AppRoute.onboarding;
+  late AppRoute _route = FirebaseAuth.instance.currentUser != null
+      ? AppRoute.home
+      : AppRoute.onboarding;
   Transaction? _detailTx;
 
   void _go(AppRoute r) => setState(() => _route = r);
@@ -98,7 +107,7 @@ class _AppShellState extends State<AppShell> {
 
     final body = switch (_route) {
       AppRoute.onboarding => OnboardingScreen(onStart: () => _go(AppRoute.login)),
-      AppRoute.login => LoginScreen(onLogin: (_) => _go(AppRoute.home)),
+      AppRoute.login => LoginScreen(onSuccess: () => _go(AppRoute.home)),
       AppRoute.home => HomeScaffold(onTab: _onTab, onFab: () => _go(AppRoute.addEntry)),
       AppRoute.list => TxListScreen(
         onTab: _onTab,
