@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068088775959",
+    "project_id": "tikkle-1628f",
+    "storage_bucket": "tikkle-1628f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068088775959:android:bf14c0745f3d0c71d15352",
+        "android_client_info": {
+          "package_name": "com.siflab.tikkle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQitG6OVYnqX3akjuQ6T2_8RXKJfCZGw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
